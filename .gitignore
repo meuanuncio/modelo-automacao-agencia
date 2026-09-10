@@ -1,0 +1,34 @@
+# Variáveis de Ambiente e Segredos
+.env
+.env.local
+*.json
+!package.json
+
+# Credentials e Tokens de API (NUNCA COMMITAR)
+*secret*
+*token*
+*service-account*
+credentials/
+tokens/
+
+# Python / Ambientes Virtuais
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+ENV/
+
+# Dados de Clientes e Relatórios Locais
+*.csv
+*.xlsx
+*.pdf
+logs/
+*.log
+
+# IDEs e Editores
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
