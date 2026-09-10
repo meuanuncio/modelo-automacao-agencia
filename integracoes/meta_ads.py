@@ -2,8 +2,8 @@
 """
 integracoes/meta_ads.py — Integração Sanitizada com Meta Ads Graph API
 
-Permite realizar consultas de métricas de conta/campanha, listar anúncios ativos,
-substituir URLs de destino e analisar o desempenho de criativos.
+Permite realizar consultas de métricas de conta/campanha, criação automática de campanhas,
+conjuntos de anúncios e anúncios, além de atualização de URLs de destino.
 """
 
 import os
@@ -14,7 +14,6 @@ import urllib.parse
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 
-# Tenta carregar do módulo central de config ou variáveis de ambiente locais
 try:
     from config import Config
     ACCESS_TOKEN = Config.META_ACCESS_TOKEN
@@ -24,18 +23,11 @@ except ImportError:
     GRAPH_VERSION = "v21.0"
     BASE_URL = f"https://graph.facebook.com/{GRAPH_VERSION}"
 
-# Contexto SSL seguro
 CTX = ssl._create_unverified_context()
 
 
 def graph_get(path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """
-    Executa uma requisição GET para a Meta Graph API.
-    
-    :param path: Endpoint ou ID do recurso (ex: 'act_12345/insights')
-    :param params: Dicionário com parâmetros da requisição
-    :return: Resposta em formato JSON (dict)
-    """
+    """Executa uma requisição GET para a Meta Graph API."""
     if params is None:
         params = {}
     params["access_token"] = ACCESS_TOKEN
@@ -49,13 +41,7 @@ def graph_get(path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, A
 
 
 def graph_post(path: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """
-    Executa uma requisição POST para a Meta Graph API.
-    
-    :param path: Endpoint ou ID do recurso
-    :param data: Payload a ser enviado
-    :return: Resposta em formato JSON (dict)
-    """
+    """Executa uma requisição POST para a Meta Graph API."""
     if data is None:
         data = {}
     data["access_token"] = ACCESS_TOKEN
@@ -72,11 +58,7 @@ def graph_post(path: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, An
 
 
 def obter_metricas_conta(account_id: str, since: str, until: str) -> Dict[str, Any]:
-    """
-    Retorna métricas consolidadas de uma conta de anúncios em determinado período.
-    
-    Métricas retornadas: Investimento (spend), Impressões, Cliques, CPL, CPC, CTR.
-    """
+    """Retorna métricas consolidadas de uma conta de anúncios em determinado período."""
     params = {
         "time_range": json.dumps({"since": since, "until": until}),
         "fields": "spend,impressions,clicks,cpc,cpm,ctr,actions",
@@ -92,7 +74,6 @@ def obter_metricas_conta(account_id: str, since: str, until: str) -> Dict[str, A
     impressions = int(dados.get("impressions", 0))
     clicks = int(dados.get("clicks", 0))
     
-    # Processa ações para extrair contagem de leads
     leads = 0
     actions = dados.get("actions", [])
     for act in actions:
@@ -115,11 +96,63 @@ def obter_metricas_conta(account_id: str, since: str, until: str) -> Dict[str, A
     }
 
 
+def criar_campanha_meta(account_id: str, nome: str, objetivo: str = "OUTCOME_LEADS",
+                         orcamento_diario_centavos: Optional[int] = None, status: str = "PAUSED") -> Dict[str, Any]:
+    """
+    Cria uma nova campanha no Meta Ads.
+    
+    :param account_id: ID da conta no formato 'act_123456789'
+    :param nome: Nome da campanha
+    :param objetivo: Ex: 'OUTCOME_LEADS', 'OUTCOME_TRAFFIC', 'OUTCOME_SALES'
+    :param orcamento_diario_centavos: Valor diário em centavos (ex: 2000 = R$ 20,00)
+    :param status: 'PAUSED' ou 'ACTIVE'
+    """
+    payload = {
+        "name": nome,
+        "objective": objetivo,
+        "status": status,
+        "special_ad_categories": json.dumps([])
+    }
+    if orcamento_diario_centavos:
+        payload["daily_budget"] = str(orcamento_diario_centavos)
+
+    return graph_post(f"{account_id}/campaigns", payload)
+
+
+def criar_conjunto_anuncios_meta(account_id: str, campaign_id: str, nome: str,
+                                 targeting: dict, orcamento_diario_centavos: int = 2000,
+                                 status: str = "PAUSED") -> Dict[str, Any]:
+    """
+    Cria um conjunto de anúncios (AdSet) associado a uma campanha.
+    """
+    payload = {
+        "name": nome,
+        "campaign_id": campaign_id,
+        "daily_budget": str(orcamento_diario_centavos),
+        "billing_event": "IMPRESSIONS",
+        "optimization_goal": "LEAD_GENERATION",
+        "targeting": json.dumps(targeting),
+        "status": status
+    }
+    return graph_post(f"{account_id}/adsets", payload)
+
+
+def criar_anuncio_meta(account_id: str, adset_id: str, creative_id: str,
+                        nome: str, status: str = "PAUSED") -> Dict[str, Any]:
+    """
+    Cria um anúncio (Ad) associando um criativo a um conjunto de anúncios.
+    """
+    payload = {
+        "name": nome,
+        "adset_id": adset_id,
+        "creative": json.dumps({"creative_id": creative_id}),
+        "status": status
+    }
+    return graph_post(f"{account_id}/ads", payload)
+
+
 def atualizar_url_destino_anuncio(ad_id: str, nova_url: str) -> Dict[str, Any]:
-    """
-    Atualiza a URL de destino de um anúncio Meta mantendo o criativo existente.
-    """
-    # 1. Busca o ID do criativo associado ao anúncio
+    """Atualiza a URL de destino de um anúncio Meta mantendo o criativo existente."""
     ad = graph_get(ad_id, params={"fields": "id,name,creative{id}"})
     if "error" in ad:
         return {"erro": f"Não foi possível ler o anúncio: {ad['error']}"}
@@ -128,7 +161,6 @@ def atualizar_url_destino_anuncio(ad_id: str, nova_url: str) -> Dict[str, Any]:
     if not cid:
         return {"erro": "Anúncio não possui um creative_id associado."}
 
-    # 2. Executa a atualização via POST
     res = graph_post(ad_id, {"creative": json.dumps({"creative_id": cid, "link_url": nova_url})})
     if res.get("success") or ("error" not in res):
         return {"ok": True, "ad_id": ad_id, "nova_url": nova_url}
