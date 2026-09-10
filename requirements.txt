@@ -2,10 +2,13 @@
 python-dotenv>=1.0.0
 requests>=2.31.0
 
-# APIs de Anúncios e Analytics (Opcional)
+# APIs de Anúncios e Analytics
 google-ads>=23.0.0
 facebook-business>=19.0.0
+google-analytics-data>=0.18.0
+google-api-python-client>=2.100.0
 
-# Utilitários de Data e Manipulação de Dados
-python-dateutil>=2.8.2
+# Geração de PDFs e Relatórios
+reportlab>=4.0.0
 pydantic>=2.0.0
+python-dateutil>=2.8.2

@@ -1,6 +1,6 @@
 # 🚀 Template de Automação para Agências de Tráfego e Performance
 
-Este repositório é um **modelo/template base sanitizado** projetado para auxiliar agências na montagem de suas estruturas de automação comercial, onboarding de clientes, disparo de faturas e relatórios automatizados de tráfego pago via WhatsApp.
+Este repositório é um **modelo/template base sanitizado** projetado para auxiliar agências na montagem de suas estruturas de automação comercial, criação e gestão de campanhas de anúncios, onboarding de clientes, disparo de faturas, monitoramento de saldo e relatórios automatizados via WhatsApp.
 
 ---
 
@@ -17,8 +17,16 @@ modelo-automacao-agencia/
 │
 ├── integracoes/              # Módulos isolados de APIs externas
 │   ├── __init__.py
-│   ├── meta_ads.py           # Meta Ads Graph API (Métricas, Anúncios, Criativos)
-│   ├── google_ads.py         # Google Ads API (Relatórios GAQL, Orçamentos)
+│   ├── meta_ads.py           # Meta Ads API (Métricas, Criação de Campanhas/Ads e URLs)
+│   ├── google_ads.py         # Google Ads API (Relatórios GAQL e Campanhas Search)
+│   ├── ga4.py                # GA4 Data API (Métricas de Tráfego, Conversões, UTMs)
+│   ├── gtm.py                # Google Tag Manager API (Inspeção de Contêineres/Tags)
+│   ├── google_business.py    # Google Meu Negócio API (Reviews, Locais, Métricas)
+│   ├── linkedin_ads.py       # LinkedIn Ads API (Métricas B2B e Campanhas)
+│   ├── tiktok_ads.py         # TikTok Business API (Upload de Vídeos e Métricas)
+│   ├── youtube.py            # YouTube Data API v3 (Upload de Vídeos e Shorts)
+│   ├── wordpress.py          # WordPress REST API (Gestão de Páginas e Posts)
+│   ├── typebot.py            # Typebot API (Qualificação de Leads MQL)
 │   ├── evolution_api.py      # WhatsApp API (Mensagens de Texto, PDFs, Mídias)
 │   ├── asaas.py              # Asaas API (Cobranças Recorrentes, PIX, Clientes)
 │   ├── autentique.py         # Autentique API (Assinatura Digital de Contratos)
@@ -28,11 +36,16 @@ modelo-automacao-agencia/
 │   ├── __init__.py
 │   ├── onboarding_cliente.py # Workflow: Cadastro + Contrato + Trello + Boas-vindas
 │   ├── cobranca_lembretes.py # Workflow: Consulta de faturas em atraso e avisos
-│   └── relatorio_diario.py   # Workflow: Coleta de métricas e envio no WhatsApp
+│   ├── relatorio_diario.py   # Workflow: Coleta de métricas e envio no WhatsApp
+│   ├── monitor_saldo.py      # Workflow: Alerta de saldo pré-pago no Meta Ads
+│   ├── monitor_orcamento.py  # Workflow: Alerta de estouro de orçamento diário
+│   ├── analise_criativos.py  # Workflow: Ranking dos criativos mais lucrativos (ROAS, CPL)
+│   └── kw_manager.py         # Workflow: Negativação em lote no Google Ads
 │
 └── utils/                    # Utilitários de apoio
     ├── __init__.py
-    └── formatadores.py       # Formatação de moeda BRL, telefones e porcentagens
+    ├── formatadores.py       # Formatação de moeda BRL, telefones e porcentagens
+    └── gerar_proposta_pdf.py # Gerador de propostas e relatórios em PDF
 ```
 
 ---
@@ -53,7 +66,7 @@ modelo-automacao-agencia/
 
 ### 1. Clonar o Repositório e Instalar Dependências
 ```bash
-git clone <URL_DO_SEU_REPOSITORIO>
+git clone https://github.com/meuanuncio/modelo-automacao-agencia.git
 cd modelo-automacao-agencia
 
 # Criar e ativar ambiente virtual Python
@@ -71,12 +84,7 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 ```
-Edite o arquivo `.env` fornecendo seus tokens de acesso:
-* **Meta Ads:** `META_ACCESS_TOKEN`, `META_ACCOUNT_ID`
-* **Evolution API:** `EVOLUTION_URL`, `EVOLUTION_API_KEY`, `EVOLUTION_INSTANCE`
-* **Asaas:** `ASAAS_API_KEY_PROD` ou `ASAAS_API_KEY_SANDBOX`
-* **Autentique:** `AUTENTIQUE_TOKEN`
-* **Trello:** `TRELLO_API_KEY`, `TRELLO_TOKEN`, `TRELLO_LIST_NOVOS_CLIENTES_ID`
+Edite o arquivo `.env` fornecendo seus tokens de acesso conforme documentado no arquivo.
 
 ### 3. Validar a Configuração
 Rode o script central para verificar se há pendências de configuração:
@@ -84,27 +92,13 @@ Rode o script central para verificar se há pendências de configuração:
 python config.py
 ```
 
-### 4. Executar os Workflows de Exemplo
-* **Onboarding de Novo Cliente:**
-  ```bash
-  python rotinas/onboarding_cliente.py
-  ```
-* **Lembrete de Cobranças Vencidas:**
-  ```bash
-  python rotinas/cobranca_lembretes.py
-  ```
-* **Relatório no WhatsApp:**
-  ```bash
-  python rotinas/relatorio_diario.py
-  ```
-
 ---
 
 ## 📝 Como Adaptar para a Sua Agência
 
-* **Para alterar a linguagem das mensagens:** Modifique os templates de texto dentro de `rotinas/onboarding_cliente.py` e `rotinas/relatorio_diario.py`.
-* **Para adicionar novas integrações (ex: CRM, RD Station, ActiveCampaign):** Crie um novo módulo em `integracoes/seu_crm.py` seguindo a mesma estrutura com `requests`.
-* **Para agendar a execução automática:** Você pode configurar o Windows Task Scheduler ou Cron (Linux/VPS) para executar os scripts da pasta `rotinas/` em horários fixos.
+* **Com qualquer IA (Claude Code, Antigravity, Codex, Freebuff):**
+  Basta abrir uma sessão com o seu assistente de código e solicitar:
+  > *"Clone o repositório https://github.com/meuanuncio/modelo-automacao-agencia e me ajude a configurar o `.env` e personalizar as rotinas para a minha agência."*
 
 ---
 *Template criado para fins de treinamento e mentoria em automações de tráfego pago.*

@@ -8,7 +8,6 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# Carrega as variáveis contidas no arquivo .env
 load_dotenv()
 
 
@@ -34,6 +33,33 @@ class Config:
     GOOGLE_ADS_REFRESH_TOKEN = os.getenv("GOOGLE_ADS_REFRESH_TOKEN", "")
     GOOGLE_ADS_CUSTOMER_ID = os.getenv("GOOGLE_ADS_CUSTOMER_ID", "")
 
+    # GA4 & GTM
+    GA4_PROPERTY_ID = os.getenv("GA4_PROPERTY_ID", "")
+    GA4_SERVICE_ACCOUNT_PATH = os.getenv("SA_CREDS_PATH", "service-account.json")
+    GTM_ACCOUNT_ID = os.getenv("GTM_ACCOUNT_ID", "")
+    GTM_CONTAINER_ID = os.getenv("GTM_CONTAINER_ID", "")
+
+    # Google Meu Negócio
+    GOOGLE_BUSINESS_SA_PATH = os.getenv("GOOGLE_BUSINESS_SA_PATH", "google_business_sa.json")
+
+    # LinkedIn Ads
+    LINKEDIN_ACCESS_TOKEN = os.getenv("LINKEDIN_ACCESS_TOKEN", "")
+
+    # TikTok Ads
+    TIKTOK_ACCESS_TOKEN = os.getenv("TIKTOK_ACCESS_TOKEN", "")
+    TIKTOK_BUSINESS_ID = os.getenv("TIKTOK_BUSINESS_ID", "")
+
+    # YouTube Data API
+    YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
+
+    # WordPress REST API
+    WP_URL = os.getenv("WP_URL", "")
+    WP_USER = os.getenv("WP_USER", "")
+    WP_APP_PASSWORD = os.getenv("WP_APP_PASSWORD", "")
+
+    # Typebot
+    TYPEBOT_API_TOKEN = os.getenv("TYPEBOT_API_TOKEN", "")
+
     # Evolution API (WhatsApp)
     EVOLUTION_URL = os.getenv("EVOLUTION_URL", "").rstrip("/")
     EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE", "comercial")
@@ -57,10 +83,7 @@ class Config:
 
     @classmethod
     def validar_configuracoes_basicas(cls) -> bool:
-        """
-        Verifica se as configurações mínimas essenciais foram preenchidas.
-        Retorna True se estiver tudo ok, ou imprime os avisos de pendência.
-        """
+        """Verifica se as configurações mínimas essenciais foram preenchidas."""
         pendencias = []
         if not cls.META_ACCESS_TOKEN:
             pendencias.append("META_ACCESS_TOKEN não configurado no .env")
